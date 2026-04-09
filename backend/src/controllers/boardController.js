@@ -4,7 +4,11 @@ import Card from "../models/Card.js";
 
 export const getBoards = async (req, res) => {
   try {
-    const boards = await Board.find().sort({ createdAt: -1 });
+      const boards = await Board.find().sort({ createdAt: -1 });
+      
+      if (boards.length === 0) {
+          return res.status(404).json({ message: "No boards found" });
+      }
 
     res.json(boards);
   } catch (error) {
