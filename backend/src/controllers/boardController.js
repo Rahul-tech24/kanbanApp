@@ -4,11 +4,7 @@ import Card from "../models/Card.js";
 
 export const getBoards = async (req, res) => {
   try {
-      const boards = await Board.find().sort({ createdAt: -1 });
-      
-      if (boards.length === 0) {
-          return res.status(404).json({ message: "No boards found" });
-      }
+    const boards = await Board.find().sort({ createdAt: -1 });
 
     res.json(boards);
   } catch (error) {
@@ -18,9 +14,13 @@ export const getBoards = async (req, res) => {
 
 export const createBoard = async (req, res) => {
   try {
-        const { title } = req.body;
+    const { title } = req.body;
+
+    if (!title?.trim()) {
+      return res.status(400).json({ message: "Board title is required" });
+    }
       
-    const board = await Board.create({ title });
+    const board = await Board.create({ title: title.trim() });
 
     res.status(201).json(board);
   } catch (error) {

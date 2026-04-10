@@ -11,7 +11,7 @@ export default function AddList({ boardId }) {
   const createListMutation = useMutation({
     mutationFn: createList,
     onSuccess: () => {
-      queryClient.invalidateQueries(["board", boardId]);
+      queryClient.invalidateQueries({ queryKey: ["board", boardId] });
     }
   });
 
@@ -38,7 +38,7 @@ export default function AddList({ boardId }) {
       />
 
       <button onClick={handleCreateList}>
-        Add List
+        {createListMutation.isPending ? "Adding..." : "Add List"}
       </button>
 
     </div>

@@ -1,11 +1,9 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useBoard } from "../hooks/useBoard";
-import { useState, useEffect } from "react";
 
 import { DndContext } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { moveCard } from "../api/card";
 
 import ListColumn from "../components/ListColumn";
@@ -15,93 +13,87 @@ export default function BoardPage() {
 
   const { boardId } = useParams();
 
-  const { data, isLoading } = useBoard(boardId);
+  const queryClient = useQueryClient();
 
-  const [lists, setLists] = useState([]);
-  const [cards, setCards] = useState([]);
+  const { data, isLoading, isError, error } = useBoard(boardId);
 
-  useEffect(() => {
-    if (data) {
-      setLists(data.lists);
-      setCards(data.cards);
-    }
-  }, [data]);
-    
-    const moveCardMutation = useMutation({
-  mutationFn: moveCard
-});
-
-  const handleDragEnd = (event) => {
-
-  const { active, over } = event;
-
-  if (!over) return;
-  if (active.id === over.id) return;
-
-  const oldIndex = cards.findIndex(
-    card => card._id === active.id
-  );
-
-  const newIndex = cards.findIndex(
-    card => card._id === over.id
-  );
-
-  const activeCard = cards[oldIndex];
-  const overCard = cards[newIndex];
-
-  let updatedCards;
-
-  // same list reorder
-  if (activeCard.listId === overCard.listId) {
-
-    updatedCards = arrayMove(cards, oldIndex, newIndex);
-
-  } else {
-
-    const copy = [...cards];
-
-    copy[oldIndex] = {
-      ...activeCard,
-      listId: overCard.listId
-    };
-
-    updatedCards = arrayMove(copy, oldIndex, newIndex);
-
-  }
-
-  // optimistic update
-  setCards(updatedCards);
-
-  // backend mutation
-  moveCardMutation.mutate({
-    cardId: activeCard._id,
-    data: {
-      sourceListId: activeCard.listId,
-      destinationListId: overCard.listId,
-      destinationIndex: newIndex
+  const moveCardMutation = useMutation({
+    mutationFn: moveCard,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board", boardId] });
     }
   });
 
-};
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
 
-  
+    if (!over) return;
+    if (active.id === over.id) return;
+
+    const cards = data?.cards || [];
+
+    const oldIndex = cards.findIndex(
+      card => card._id === active.id
+    );
+
+    const newIndex = cards.findIndex(
+      card => card._id === over.id
+    );
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const activeCard = cards[oldIndex];
+    const overCard = cards[newIndex];
+
+    moveCardMutation.mutate({
+      cardId: activeCard._id,
+      data: {
+        sourceListId: activeCard.listId,
+        destinationListId: overCard.listId,
+        destinationIndex: newIndex
+      }
+    });
+  };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="page-state">Loading board...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="page-state error-state">
+        {error?.response?.data?.message || "Could not load this board."}
+      </div>
+    );
+  }
+
+  if (!data) {
+    return <div className="page-state">No board data found.</div>;
   }
 
   const { board } = data;
+  const lists = data.lists || [];
+  const cards = data.cards || [];
 
   const sortedLists = [...lists].sort((a, b) => a.order - b.order);
 
   return (
-    <div>
+    <main className="board-page">
+      <Link className="back-link" to="/">
+        Back to boards
+      </Link>
 
       <h1>{board.title}</h1>
 
       <DndContext onDragEnd={handleDragEnd}>
 
         <div className="board">
+
+          {sortedLists.length === 0 && (
+            <div className="empty-board">
+              No lists yet. Create your first list to start planning.
+            </div>
+          )}
 
           {sortedLists.map((list) => {
 
@@ -114,17 +106,19 @@ export default function BoardPage() {
                 key={list._id}
                 list={list}
                 cards={listCards}
+                boardId={boardId}
               />
             );
 
           })}
-                  <AddList boardId={boardId} />
+
+          <AddList boardId={boardId} />
 
         </div>
 
       </DndContext>
 
-    </div>
+    </main>
   );
 
 }

@@ -5,11 +5,24 @@ export const createCard = async (req, res) => {
     try {
         const { title, description, listId } = req.body;
 
+        if (!title?.trim()) {
+            return res.status(400).json({ message: "Card title is required" });
+        }
+
+        if (!listId) {
+            return res.status(400).json({ message: "List id is required" });
+        }
+
         const lastCard = await Card.findOne({ listId }).sort({ order: -1 });
 
         const newOrder = lastCard ? lastCard.order + 1 : 0;
 
-        const card = await Card.create({ listId, title, description, order: newOrder });
+        const card = await Card.create({
+          listId,
+          title: title.trim(),
+          description,
+          order: newOrder
+        });
 
         res.status(201).json(card);
     } catch (error) {
@@ -20,12 +33,31 @@ export const createCard = async (req, res) => {
 export const updateCard = async (req, res) => {
   try {
     const { id } = req.params;
+    const { title, description } = req.body;
+
+    if (title !== undefined && !title.trim()) {
+      return res.status(400).json({ message: "Card title is required" });
+    }
+
+    const updates = {};
+
+    if (title !== undefined) {
+      updates.title = title.trim();
+    }
+
+    if (description !== undefined) {
+      updates.description = description;
+    }
 
     const card = await Card.findByIdAndUpdate(
       id,
-      req.body,
-      { new: true }
+      updates,
+      { new: true, runValidators: true }
     );
+
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
 
     res.json(card);
 
@@ -38,8 +70,26 @@ export const getCard = async (req, res) => {
   try {
     const card = await Card.findById(req.params.id);
 
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
     res.json(card);
 
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteCard = async (req, res) => {
+  try {
+    const card = await Card.findByIdAndDelete(req.params.id);
+
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    res.json({ message: "Card deleted" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

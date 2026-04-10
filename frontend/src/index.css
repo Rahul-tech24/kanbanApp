@@ -3,3 +3,22 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+body {
+  min-height: 100vh;
+  color: #17202a;
+  background:
+    radial-gradient(circle at top left, rgba(255, 183, 77, 0.35), transparent 30%),
+    linear-gradient(135deg, #fffaf0 0%, #edf7f6 48%, #eef2ff 100%);
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}

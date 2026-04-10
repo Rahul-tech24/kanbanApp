@@ -9,6 +9,7 @@ const fetchBoard = async (boardId) => {
 export const useBoard = (boardId) => {
   return useQuery({
     queryKey: ["board", boardId],
-    queryFn: () => fetchBoard(boardId)
+    queryFn: () => fetchBoard(boardId),
+    enabled: Boolean(boardId)
   });
 };
