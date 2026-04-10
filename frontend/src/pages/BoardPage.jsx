@@ -1,7 +1,8 @@
 import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
 import { useBoard } from "../hooks/useBoard";
 
-import { DndContext } from "@dnd-kit/core";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { moveCard } from "../api/card";
@@ -49,6 +50,7 @@ export default function BoardPage() {
 
   const queryClient = useQueryClient();
   const boardQueryKey = ["board", boardId];
+  const [draggingCard, setDraggingCard] = useState(null);
 
   const { data, isLoading, isError, error } = useBoard(boardId);
 
@@ -85,8 +87,17 @@ export default function BoardPage() {
     }
   });
 
+  const handleDragStart = (event) => {
+    const cards = data?.cards || [];
+    const activeCard = cards.find(card => card._id === event.active.id);
+
+    setDraggingCard(activeCard || null);
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
+
+    setDraggingCard(null);
 
     if (!over) return;
     if (active.id === over.id) return;
@@ -139,6 +150,10 @@ export default function BoardPage() {
     });
   };
 
+  const handleDragCancel = () => {
+    setDraggingCard(null);
+  };
+
   if (isLoading) {
     return <div className="page-state">Loading board...</div>;
   }
@@ -169,7 +184,11 @@ export default function BoardPage() {
 
       <h1>{board.title}</h1>
 
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
 
         <div className="board">
 
@@ -199,6 +218,15 @@ export default function BoardPage() {
           <AddList boardId={boardId} />
 
         </div>
+
+        <DragOverlay>
+          {draggingCard ? (
+            <article className="card drag-overlay-card">
+              <span className="drag-handle">Drag</span>
+              <strong>{draggingCard.title}</strong>
+            </article>
+          ) : null}
+        </DragOverlay>
 
       </DndContext>
 

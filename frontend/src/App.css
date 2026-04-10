@@ -264,6 +264,17 @@
   outline: 2px solid rgba(15, 118, 110, 0.22);
 }
 
+.card.is-dragging {
+  opacity: 0.35;
+}
+
+.drag-overlay-card {
+  width: 230px;
+  cursor: grabbing;
+  pointer-events: none;
+  transform: rotate(1deg);
+}
+
 .card strong {
   flex: 1;
   overflow-wrap: anywhere;

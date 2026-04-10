@@ -10,6 +10,7 @@ export default function CardItem({ card, boardId }) {
     attributes,
     listeners,
     setNodeRef,
+    isDragging,
     transform,
     transition
   } = useSortable({
@@ -41,7 +42,7 @@ export default function CardItem({ card, boardId }) {
     <article
       ref={setNodeRef}
       style={style}
-      className="card"
+      className={`card ${isDragging ? "is-dragging" : ""}`}
       role="button"
       tabIndex={0}
       onClick={openCardDetail}
