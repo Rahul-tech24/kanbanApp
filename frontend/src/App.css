@@ -4,7 +4,8 @@
 }
 
 .home-page,
-.board-page {
+.board-page,
+.card-detail-page {
   max-width: 1180px;
   margin: 0 auto;
 }
@@ -73,7 +74,9 @@
 .add-card input,
 .list-title-form input,
 .card-edit-form input,
-.card-edit-form textarea {
+.card-edit-form textarea,
+.card-detail-form input,
+.card-detail-form textarea {
   width: 100%;
   border: 1px solid rgba(23, 32, 42, 0.16);
   border-radius: 14px;
@@ -86,7 +89,9 @@
 .add-card input:focus,
 .list-title-form input:focus,
 .card-edit-form input:focus,
-.card-edit-form textarea:focus {
+.card-edit-form textarea:focus,
+.card-detail-form input:focus,
+.card-detail-form textarea:focus {
   border-color: #0f766e;
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
 }
@@ -96,6 +101,7 @@
 .add-card button,
 .list-title-form button,
 .card-edit-form button,
+.card-detail-form button,
 .ghost-button,
 .danger-button {
   border: 0;
@@ -242,24 +248,23 @@
 }
 
 .card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   background: white;
   padding: 10px;
   margin-bottom: 8px;
   border-radius: 6px;
   box-shadow: 0 8px 18px rgba(23, 32, 42, 0.08);
+  cursor: pointer;
 }
 
-.card.is-editing {
-  outline: 2px solid rgba(15, 118, 110, 0.18);
+.card:hover,
+.card:focus-visible {
+  outline: 2px solid rgba(15, 118, 110, 0.22);
 }
 
-.card-topline {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.card-topline strong {
+.card strong {
   flex: 1;
   overflow-wrap: anywhere;
 }
@@ -277,18 +282,6 @@
 
 .drag-handle:active {
   cursor: grabbing;
-}
-
-.card-description {
-  margin-top: 8px;
-  color: #4b5563;
-  font-size: 14px;
-  line-height: 1.4;
-  white-space: pre-wrap;
-}
-
-.card-actions {
-  margin-top: 10px;
 }
 
 .card-edit-form textarea {
@@ -327,6 +320,42 @@
 .card-edit-form button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.card-detail-panel {
+  max-width: 760px;
+  border: 1px solid rgba(23, 32, 42, 0.1);
+  border-radius: 28px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 24px 80px rgba(23, 32, 42, 0.12);
+}
+
+.card-detail-panel h1 {
+  margin-bottom: 24px;
+  font-size: clamp(32px, 5vw, 56px);
+  letter-spacing: -0.05em;
+}
+
+.card-detail-form {
+  display: grid;
+  gap: 12px;
+}
+
+.card-detail-form label {
+  font-weight: 700;
+}
+
+.card-detail-form textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.card-detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .page-state {

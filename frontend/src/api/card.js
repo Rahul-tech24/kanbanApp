@@ -5,6 +5,10 @@ export const moveCard = async ({ cardId, data }) => {
   return res.data;
 };
 
+export const getCard = async (cardId) => {
+  const res = await api.get(`/cards/${cardId}`);
+  return res.data;
+};
 
 export const createCard = async (data) => {
   const res = await api.post("/cards", data);
