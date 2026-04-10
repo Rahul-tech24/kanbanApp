@@ -16,3 +16,9 @@
   margin-bottom: 8px;
   border-radius: 6px;
 }
+.add-list {
+  width: 250px;
+  background: #ebecf0;
+  padding: 10px;
+  border-radius: 8px;
+}
