@@ -21,7 +21,11 @@ export default function CardItem({ card, boardId }) {
     transition
   } = useSortable({
     id: card._id,
-    disabled: isEditing
+    disabled: isEditing,
+    data: {
+      type: "card",
+      card
+    }
   });
 
   const updateCardMutation = useMutation({

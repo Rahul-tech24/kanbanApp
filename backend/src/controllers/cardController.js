@@ -97,43 +97,72 @@ export const deleteCard = async (req, res) => {
 
 export const moveCard = async (req, res) => {
   try {
-      const { id } = req.params;
-      
-      const {
-  sourceListId,
-  destinationListId,
-  destinationIndex
-      } = req.body;
-      
-      const destinationCards = await Card.find({
-  listId: destinationListId
-      }).sort({ order: 1 });
-      
-      const prevCard = destinationCards[destinationIndex - 1];
-      const nextCard = destinationCards[destinationIndex];
-      
-      let newOrder;
-      
-      if (prevCard && nextCard) {
-          newOrder = (prevCard.order + nextCard.order) / 2;
-        } else if (prevCard && !nextCard) {
-          newOrder = prevCard.order + 1;
-        } else if (!prevCard && nextCard) {
-          newOrder = nextCard.order / 2 ;
-        } else {
-          newOrder = 1;
-      }
-      
-      const updatedCard = await Card.findByIdAndUpdate(
-  id,
-  {
-    listId: destinationListId,
-    order: newOrder
-  },
-  { new: true }
-);
+    const { id } = req.params;
 
-    res.json(updatedCard);
+    const {
+      sourceListId,
+      destinationListId,
+      destinationIndex,
+      destinationCardId
+    } = req.body;
+
+    if (!sourceListId || !destinationListId) {
+      return res.status(400).json({ message: "Source and destination lists are required" });
+    }
+
+    const card = await Card.findById(id);
+
+    if (!card) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    const destinationCards = await Card.find({
+      listId: destinationListId,
+      _id: { $ne: id }
+    }).sort({ order: 1 });
+
+    const requestedIndex = Number(destinationIndex);
+
+    if (!Number.isInteger(requestedIndex)) {
+      return res.status(400).json({ message: "Destination index is required" });
+    }
+
+    const safeIndex = Math.max(
+      0,
+      Math.min(requestedIndex, destinationCards.length)
+    );
+
+    const prevCard = destinationCards[safeIndex - 1];
+    const nextCard = destinationCards[safeIndex];
+
+    let newOrder;
+
+    if (prevCard && nextCard) {
+      newOrder = (prevCard.order + nextCard.order) / 2;
+    } else if (prevCard) {
+      newOrder = prevCard.order + 1;
+    } else if (nextCard) {
+      newOrder = nextCard.order - 1;
+    } else {
+      newOrder = 1;
+    }
+
+    const updatedCard = await Card.findByIdAndUpdate(
+      id,
+      {
+        listId: destinationListId,
+        order: newOrder
+      },
+      { new: true, runValidators: true }
+    );
+
+    res.json({
+      card: updatedCard,
+      sourceListId,
+      destinationListId,
+      destinationIndex: safeIndex,
+      destinationCardId: destinationCardId || null
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

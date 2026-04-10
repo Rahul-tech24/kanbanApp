@@ -230,6 +230,17 @@
   gap: 8px;
 }
 
+.card-list {
+  min-height: 48px;
+  border-radius: 10px;
+  transition: background 140ms ease, outline-color 140ms ease;
+}
+
+.card-list.is-over {
+  background: rgba(15, 118, 110, 0.08);
+  outline: 2px dashed rgba(15, 118, 110, 0.28);
+}
+
 .card {
   background: white;
   padding: 10px;

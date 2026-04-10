@@ -1,4 +1,5 @@
 import CardItem from "./CardItem";
+import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +9,13 @@ import { deleteList, updateList } from "../api/list";
 export default function ListColumn({ list, cards, boardId }) {
 
   const cardIds = cards.map(card => card._id);
+  const { setNodeRef, isOver } = useDroppable({
+    id: list._id,
+    data: {
+      type: "list",
+      listId: list._id
+    }
+  });
 
   const [title, setTitle] = useState("");
   const [isEditingList, setIsEditingList] = useState(false);
@@ -138,7 +146,10 @@ export default function ListColumn({ list, cards, boardId }) {
 
       <SortableContext items={cardIds}>
 
-        <div className="card-list">
+        <div
+          className={`card-list ${isOver ? "is-over" : ""}`}
+          ref={setNodeRef}
+        >
 
           {cards.length === 0 && (
             <p className="empty-state">No cards yet. Add the first task.</p>

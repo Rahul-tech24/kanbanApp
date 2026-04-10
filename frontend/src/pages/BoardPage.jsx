@@ -9,18 +9,79 @@ import { moveCard } from "../api/card";
 import ListColumn from "../components/ListColumn";
 import AddList from "../components/AddList";
 
+const sortCardsByOrder = (a, b) => a.order - b.order;
+
+const reorderCardsForPreview = (
+  cards,
+  activeCard,
+  destinationListId,
+  destinationIndex
+) => {
+  const otherCards = cards.filter(card => card._id !== activeCard._id);
+  const destinationCards = otherCards
+    .filter(card => card.listId === destinationListId)
+    .sort(sortCardsByOrder);
+
+  const safeIndex = Math.max(
+    0,
+    Math.min(destinationIndex, destinationCards.length)
+  );
+
+  destinationCards.splice(safeIndex, 0, {
+    ...activeCard,
+    listId: destinationListId
+  });
+
+  const previewDestinationCards = destinationCards.map((card, index) => ({
+    ...card,
+    order: index
+  }));
+
+  return [
+    ...otherCards.filter(card => card.listId !== destinationListId),
+    ...previewDestinationCards
+  ];
+};
+
 export default function BoardPage() {
 
   const { boardId } = useParams();
 
   const queryClient = useQueryClient();
+  const boardQueryKey = ["board", boardId];
 
   const { data, isLoading, isError, error } = useBoard(boardId);
 
   const moveCardMutation = useMutation({
     mutationFn: moveCard,
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: boardQueryKey });
+
+      const previousBoard = queryClient.getQueryData(boardQueryKey);
+
+      queryClient.setQueryData(boardQueryKey, (oldBoard) => {
+        if (!oldBoard || !variables.activeCard) return oldBoard;
+
+        return {
+          ...oldBoard,
+          cards: reorderCardsForPreview(
+            oldBoard.cards || [],
+            variables.activeCard,
+            variables.data.destinationListId,
+            variables.data.destinationIndex
+          )
+        };
+      });
+
+      return { previousBoard };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousBoard) {
+        queryClient.setQueryData(boardQueryKey, context.previousBoard);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+      queryClient.invalidateQueries({ queryKey: boardQueryKey });
     }
   });
 
@@ -32,25 +93,48 @@ export default function BoardPage() {
 
     const cards = data?.cards || [];
 
-    const oldIndex = cards.findIndex(
+    const activeCard = cards.find(
       card => card._id === active.id
     );
 
-    const newIndex = cards.findIndex(
-      card => card._id === over.id
-    );
+    if (!activeCard) return;
 
-    if (oldIndex === -1 || newIndex === -1) return;
+    const overData = over.data.current;
+    let destinationListId;
+    let destinationIndex;
+    let destinationCardId = null;
 
-    const activeCard = cards[oldIndex];
-    const overCard = cards[newIndex];
+    if (overData?.type === "list") {
+      destinationListId = overData.listId;
+      destinationIndex = cards
+        .filter(card => card.listId === destinationListId)
+        .filter(card => card._id !== activeCard._id)
+        .length;
+    }
+
+    if (overData?.type === "card") {
+      const overCard = overData.card;
+      const destinationCards = cards
+        .filter(card => card.listId === overCard.listId)
+        .sort(sortCardsByOrder);
+
+      destinationListId = overCard.listId;
+      destinationIndex = destinationCards.findIndex(
+        card => card._id === overCard._id
+      );
+      destinationCardId = overCard._id;
+    }
+
+    if (!destinationListId || destinationIndex < 0) return;
 
     moveCardMutation.mutate({
       cardId: activeCard._id,
+      activeCard,
       data: {
         sourceListId: activeCard.listId,
-        destinationListId: overCard.listId,
-        destinationIndex: newIndex
+        destinationListId,
+        destinationIndex,
+        destinationCardId
       }
     });
   };
@@ -99,7 +183,7 @@ export default function BoardPage() {
 
             const listCards = cards
               .filter(card => card.listId === list._id)
-              .sort((a, b) => a.order - b.order);
+              .sort(sortCardsByOrder);
 
             return (
               <ListColumn
