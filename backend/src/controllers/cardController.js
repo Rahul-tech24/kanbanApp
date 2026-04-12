@@ -62,7 +62,7 @@ export const updateCard = async (req, res) => {
     res.json(card);
 
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -77,7 +77,7 @@ export const getCard = async (req, res) => {
     res.json(card);
 
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -91,7 +91,7 @@ export const deleteCard = async (req, res) => {
 
     res.json({ message: "Card deleted" });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -164,7 +164,6 @@ export const moveCard = async (req, res) => {
       destinationCardId: destinationCardId || null
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
   }
 };
-

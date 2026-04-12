@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Pencil } from "lucide-react";
 
 
 export default function CardItem({ card, boardId }) {
@@ -37,6 +38,11 @@ export default function CardItem({ card, boardId }) {
     }
   };
 
+  const handleEditClick = (event) => {
+    event.stopPropagation();
+    openCardDetail();
+  };
+
   return (
 
     <article
@@ -60,6 +66,15 @@ export default function CardItem({ card, boardId }) {
       </button>
 
       <strong>{card.title}</strong>
+
+      <button
+        className="card-edit-icon"
+        type="button"
+        aria-label={`Open ${card.title} details`}
+        onClick={handleEditClick}
+      >
+        <Pencil aria-hidden="true" size={14} />
+      </button>
     </article>
 
   );

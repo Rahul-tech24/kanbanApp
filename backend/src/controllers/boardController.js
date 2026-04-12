@@ -8,7 +8,7 @@ export const getBoards = async (req, res) => {
 
     res.json(boards);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -24,8 +24,8 @@ export const createBoard = async (req, res) => {
 
     res.status(201).json(board);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
-    }
+    res.status(500).json({ message: error.message });
+  }
 };
 
 export const getBoard = async (req, res) => {
@@ -52,6 +52,6 @@ export const getBoard = async (req, res) => {
       cards
                       });
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: error.message });
     }
 };

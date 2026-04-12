@@ -3,6 +3,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Pencil } from "lucide-react";
 import { createCard } from "../api/card";
 import { deleteList, updateList } from "../api/list";
 
@@ -124,11 +125,12 @@ export default function ListColumn({ list, cards, boardId }) {
 
             <div className="list-actions">
               <button
-                className="ghost-button"
+                className="list-edit-icon"
                 type="button"
+                aria-label={`Edit ${list.title} list title`}
                 onClick={startEditingList}
               >
-                Edit
+                <Pencil aria-hidden="true" size={14} />
               </button>
 
               <button
